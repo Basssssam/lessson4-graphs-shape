@@ -142,3 +142,129 @@ else:
         "장르별로 어떤 영화가 많은 관객을 모았는지 확인할 수 있습니다. "
         "칸이 클수록 총 관객 수(total_audi)가 많은 영화입니다."
     )
+    # ---------------------------------------------------------
+# 3. 총 관객 수 분포(히스토그램)
+# ---------------------------------------------------------
+st.header("3. 총 관객 수 분포")
+
+hist_df = df.dropna(subset=["total_audi"]).copy()
+
+fig_hist = px.histogram(
+    hist_df,
+    x="total_audi",
+    nbins=30,
+    title="총 관객 수 분포",
+)
+
+st.plotly_chart(fig_hist, use_container_width=True)
+
+max_movie = hist_df.loc[hist_df["total_audi"].idxmax()]
+
+most_common = (
+    pd.cut(hist_df["total_audi"], bins=10)
+    .value_counts()
+    .idxmax()
+)
+
+st.info(
+    f"대부분의 영화는 약 {int(most_common.left):,}명 ~ "
+    f"{int(most_common.right):,}명 구간에 분포합니다.\n\n"
+    f"가장 많은 관객을 모은 영화는 "
+    f"'{max_movie[movie_col]}'이며 "
+    f"총 {int(max_movie['total_audi']):,}명의 관객을 기록했습니다."
+)
+# ---------------------------------------------------------
+# 4. 개봉 스크린 수와 총 관객 수의 관계
+# ---------------------------------------------------------
+st.header("4. 개봉 스크린 수와 총 관객 수의 관계")
+
+scatter_df = df.dropna(
+    subset=["first_scrn", "total_audi", "genre_first"]
+).copy()
+
+fig_scatter = px.scatter(
+    scatter_df,
+    x="first_scrn",
+    y="total_audi",
+    color="genre_first",
+    hover_name=movie_col,
+    title="개봉 스크린 수와 총 관객 수의 관계",
+)
+
+st.plotly_chart(fig_scatter, use_container_width=True)
+# ---------------------------------------------------------
+# 5. 장르별 총 관객 수 분포
+# ---------------------------------------------------------
+st.header("5. 장르별 총 관객 수 분포")
+
+genre_count = df["genre_first"].value_counts()
+valid_genres = genre_count[genre_count >= 10].index
+
+box_df = df[
+    df["genre_first"].isin(valid_genres)
+].dropna(
+    subset=["genre_first", "total_audi"]
+).copy()
+
+fig_box = px.box(
+    box_df,
+    x="genre_first",
+    y="total_audi",
+    color="genre_first",
+    points="outliers",
+    hover_name=movie_col,
+)
+
+fig_box.update_layout(showlegend=False)
+
+st.plotly_chart(fig_box, use_container_width=True)
+# ---------------------------------------------------------
+# 6. 버블 그래프
+# ---------------------------------------------------------
+st.header("6. 버블 그래프로 보는 흥행 관계")
+
+bubble_df = df.dropna(
+    subset=[
+        "first_scrn",
+        "first_week_audi",
+        "total_audi",
+        "genre_first",
+    ]
+).copy()
+
+fig_bubble = px.scatter(
+    bubble_df,
+    x="first_scrn",
+    y="total_audi",
+    size="first_week_audi",
+    color="genre_first",
+    hover_name=movie_col,
+    size_max=50,
+    title="개봉 스크린 수, 첫 주 관객 수, 총 관객 수의 관계",
+)
+
+st.plotly_chart(fig_bubble, use_container_width=True)
+# ---------------------------------------------------------
+# 7. 제작 국가 → 장르 선버스트 그래프
+# ---------------------------------------------------------
+st.header("7. 제작 국가와 장르의 관계")
+
+nation_col = None
+for col in ["nation", "nationNm"]:
+    if col in df.columns:
+        nation_col = col
+        break
+
+if nation_col is not None:
+
+    sunburst_df = df.dropna(
+        subset=[nation_col, "genre_first"]
+    ).copy()
+
+    fig_sunburst = px.sunburst(
+        sunburst_df,
+        path=[nation_col, "genre_first"],
+        title="제작 국가 → 장르 선버스트 그래프",
+    )
+
+    st.plotly_chart(fig_sunburst, use_container_width=True)
