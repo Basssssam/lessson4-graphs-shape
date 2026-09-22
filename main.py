@@ -96,3 +96,49 @@ st.info(
     "영화 데이터에서 어떤 장르의 영화가 많이 포함되어 있고, "
     "각 장르가 전체 영화에서 어느 정도의 비중을 차지하는지 알 수 있습니다."
 )
+
+
+# ---------------------------------------------------------
+# 2. 장르 안의 영화 트리맵
+# ---------------------------------------------------------
+st.header("2. 장르별 영화 관객 수 트리맵")
+
+# 영화명 열 찾기
+movie_col = None
+for col in ["movieNm", "movie_nm", "title", "movie_name"]:
+    if col in df.columns:
+        movie_col = col
+        break
+
+if movie_col is None:
+    st.error("영화명 열을 찾을 수 없습니다.")
+else:
+    treemap_df = df.dropna(subset=[movie_col, "total_audi"]).copy()
+
+    fig_treemap = px.treemap(
+        treemap_df,
+        path=["genre_first", movie_col],
+        values="total_audi",
+        title="장르별 영화 관객 수 트리맵",
+    )
+
+    fig_treemap.update_traces(
+        hovertemplate=(
+            "<b>%{label}</b><br>"
+            "총 관객 수: %{value:,}명"
+            "<extra></extra>"
+        )
+    )
+
+    fig_treemap.update_layout(
+        margin=dict(t=60, b=20, l=20, r=20)
+    )
+
+    st.plotly_chart(fig_treemap, use_container_width=True)
+
+    st.markdown("---")
+    st.subheader("이 그래프로 알 수 있는 것")
+    st.info(
+        "장르별로 어떤 영화가 많은 관객을 모았는지 확인할 수 있습니다. "
+        "칸이 클수록 총 관객 수(total_audi)가 많은 영화입니다."
+    )
