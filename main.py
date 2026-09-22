@@ -268,3 +268,41 @@ if nation_col is not None:
     )
 
     st.plotly_chart(fig_sunburst, use_container_width=True)
+    # ---------------------------------------------------------
+# 8. 오래 상영된 영화가 관객도 많을까?
+# ---------------------------------------------------------
+st.header("8. 오래 상영된 영화가 관객도 많을까?")
+
+top10_df = df.dropna(
+    subset=["days_in_top10", "total_audi"]
+).copy()
+
+fig_top10 = px.scatter(
+    top10_df,
+    x="days_in_top10",
+    y="total_audi",
+    color="genre_first",
+    hover_name=movie_col,
+    title="TOP10 유지 기간과 총 관객 수의 관계",
+    labels={
+        "days_in_top10": "TOP10 유지 일수",
+        "total_audi": "총 관객 수",
+        "genre_first": "장르",
+    },
+)
+
+fig_top10.update_layout(
+    legend_title="장르",
+    margin=dict(t=60, b=20, l=20, r=20),
+)
+
+st.plotly_chart(fig_top10, use_container_width=True)
+
+st.markdown("---")
+st.subheader("이 그래프로 알 수 있는 것")
+st.info(
+    "각 점은 하나의 영화를 의미합니다. "
+    "x축은 박스오피스 TOP10 안에 머문 기간(days_in_top10), "
+    "y축은 총 관객 수(total_audi)입니다. "
+    "오른쪽 위에 있는 영화일수록 오랫동안 인기를 유지하면서 많은 관객을 모은 영화라고 볼 수 있습니다."
+)
